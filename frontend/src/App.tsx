@@ -32,6 +32,8 @@ type TerminalLine = {
   text: string;
   tone?: "muted" | "accent" | "ok" | "warn";
   prefix?: string;
+  kind?: "meta" | "log";
+  isNew?: boolean;
 };
 
 const formatFileSize = (bytes: number) => {
@@ -547,31 +549,37 @@ export default function App() {
       {
         prefix: "#",
         tone: "accent",
+        kind: "meta",
         text: "AI推論ターミナル / VAL-CORE v1.8.2",
       },
       {
         prefix: "$",
         tone: statusTone,
+        kind: "meta",
         text: `状態 ${aiStatusLabel} | モード ${modeLabel}`,
       },
       {
         prefix: "$",
+        kind: "meta",
         text: `入力 ${file ? file.name : "未選択"} | ${file?.type || "未設定"} | ${
           file ? formatFileSize(file.size) : "--"
         }`,
       },
       {
         prefix: "$",
+        kind: "meta",
         text: `画像 ${imageResolution} | 比率 ${aspectRatio}`,
       },
       {
         prefix: "$",
+        kind: "meta",
         text: `視覚 ${formatPipelineStatus(visionState)} ${visionProgress}${
           status === "describing" && activeStepLabel ? ` | ${activeStepLabel}` : ""
         }`,
       },
       {
         prefix: "$",
+        kind: "meta",
         text: `RAG ${formatPipelineStatus(ragState)} ${ragProgress}${
           status === "estimating" && activeStepLabel ? ` | ${activeStepLabel}` : ""
         }`,
@@ -579,20 +587,27 @@ export default function App() {
       analysisHighlights.length
         ? {
             prefix: "$",
+            kind: "meta",
             text: `特徴 ${analysisHighlights.slice(0, 3).join(" / ")}`,
           }
-        : { prefix: "$", tone: "muted", text: "特徴 未取得" },
+        : { prefix: "$", tone: "muted", kind: "meta", text: "特徴 未取得" },
       evidenceHighlights.length
         ? {
             prefix: "$",
+            kind: "meta",
             text: `参照 ${evidenceHighlights.slice(0, 2).join(" / ")}`,
           }
-        : { prefix: "$", tone: "muted", text: "参照 未取得" },
-      { prefix: ">", tone: "muted", text: "ログストリーム" },
-      ...consoleLines.map<TerminalLine>((line) => ({
-        prefix: ">",
-        text: line,
-      })),
+        : { prefix: "$", tone: "muted", kind: "meta", text: "参照 未取得" },
+      { prefix: ">", tone: "muted", kind: "meta", text: "ログストリーム" },
+      ...consoleLines.map<TerminalLine>((line, index) => {
+        const isNew = index >= Math.max(consoleLines.length - 2, 0);
+        return {
+          prefix: ">",
+          kind: "log",
+          isNew,
+          text: line,
+        };
+      }),
     ];
 
     return lines;
@@ -846,12 +861,20 @@ export default function App() {
                 {terminalLines.map((line, index) => (
                   <li
                     key={`${line.text}-${index}`}
-                    className={`terminal-line ${line.tone ?? ""}`}
+                    className={`terminal-line ${line.tone ?? ""} ${
+                      line.kind ? `kind-${line.kind}` : ""
+                    } ${line.isNew ? "is-new" : ""}`}
                   >
                     <span className="terminal-prefix">{line.prefix ?? "$"}</span>
                     <span className="terminal-text">{line.text}</span>
                   </li>
                 ))}
+                <li className="terminal-line cursor kind-log">
+                  <span className="terminal-prefix">{">"}</span>
+                  <span className="terminal-text">
+                    <span className="terminal-caret" aria-hidden="true" />
+                  </span>
+                </li>
               </ul>
             </div>
           </div>

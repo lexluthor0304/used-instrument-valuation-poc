@@ -750,6 +750,48 @@ textarea {
   border: 1px solid #1f2f2a;
   background: var(--terminal-bg);
   margin-top: 4px;
+  position: relative;
+  isolation: isolate;
+  box-shadow:
+    0 18px 38px rgba(7, 12, 10, 0.45),
+    0 0 25px rgba(126, 224, 183, 0.12);
+}
+
+.terminal-shell::before {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  background:
+    conic-gradient(
+      from 120deg,
+      rgba(126, 224, 183, 0) 0deg,
+      rgba(126, 224, 183, 0.22) 90deg,
+      rgba(243, 196, 155, 0.16) 160deg,
+      rgba(126, 224, 183, 0) 240deg
+    );
+  opacity: 0.55;
+  filter: blur(28px);
+  animation: terminalHalo 12s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.terminal-shell::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    120deg,
+    rgba(255, 255, 255, 0.08),
+    transparent 45%,
+    rgba(126, 224, 183, 0.1)
+  );
+  opacity: 0.35;
+  mix-blend-mode: screen;
+  animation: terminalSheen 5.8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .terminal-titlebar {
@@ -765,6 +807,8 @@ textarea {
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--terminal-muted);
+  position: relative;
+  z-index: 1;
 }
 
 .terminal-dots {
@@ -812,6 +856,65 @@ textarea {
   line-height: 1.6;
   max-height: 420px;
   overflow: auto;
+  position: relative;
+  z-index: 1;
+  background:
+    radial-gradient(
+      circle at 20% 10%,
+      rgba(126, 224, 183, 0.12),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 80% 90%,
+      rgba(243, 196, 155, 0.1),
+      transparent 60%
+    ),
+    linear-gradient(180deg, rgba(10, 16, 15, 0.9), rgba(8, 12, 11, 0.95));
+  background-size: 140% 140%;
+  animation: terminalDrift 12s ease-in-out infinite;
+}
+
+.terminal-body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(126, 224, 183, 0.08) 0,
+      rgba(126, 224, 183, 0.08) 1px,
+      transparent 1px,
+      transparent 4px
+    ),
+    linear-gradient(
+      120deg,
+      transparent 10%,
+      rgba(126, 224, 183, 0.12) 45%,
+      transparent 70%
+    );
+  opacity: 0.25;
+  animation: terminalScan 6s linear infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.terminal-body::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.02) 0,
+      rgba(255, 255, 255, 0.02) 1px,
+      transparent 1px,
+      transparent 6px
+    );
+  opacity: 0.2;
+  mix-blend-mode: screen;
+  animation: terminalNoise 4.2s steps(2) infinite;
+  pointer-events: none;
+  z-index: 0;
 }
 
 .terminal-lines {
@@ -819,7 +922,9 @@ textarea {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 6px;
+  gap: 4px;
+  position: relative;
+  z-index: 1;
 }
 
 .terminal-line {
@@ -827,6 +932,9 @@ textarea {
   gap: 10px;
   color: var(--terminal-ink);
   word-break: break-word;
+  position: relative;
+  overflow: hidden;
+  padding: 2px 0;
 }
 
 .terminal-prefix {
@@ -846,14 +954,55 @@ textarea {
 
 .terminal-line.accent {
   color: var(--terminal-accent);
+  text-shadow: 0 0 12px rgba(243, 196, 155, 0.35);
 }
 
 .terminal-line.ok {
   color: var(--terminal-ok);
+  text-shadow: 0 0 12px rgba(126, 224, 183, 0.35);
 }
 
 .terminal-line.warn {
   color: var(--terminal-warn);
+  text-shadow: 0 0 10px rgba(242, 183, 112, 0.3);
+}
+
+.terminal-line.kind-log {
+  animation: lineEnter 0.4s ease both;
+}
+
+.terminal-line.is-new::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(126, 224, 183, 0.25) 40%,
+    rgba(243, 196, 155, 0.2) 60%,
+    transparent 90%
+  );
+  transform: translateX(-120%);
+  mix-blend-mode: screen;
+  animation: lineSweep 1.4s ease forwards;
+  pointer-events: none;
+}
+
+.terminal-line.is-new .terminal-text {
+  text-shadow: 0 0 10px rgba(126, 224, 183, 0.25);
+}
+
+.terminal-line.cursor {
+  opacity: 0.75;
+}
+
+.terminal-caret {
+  display: inline-block;
+  width: 10px;
+  height: 1em;
+  background: var(--terminal-accent);
+  box-shadow: 0 0 12px rgba(243, 196, 155, 0.45);
+  animation: caretBlink 0.9s steps(1) infinite;
 }
 
 .terminal-footnote {
@@ -873,18 +1022,19 @@ textarea {
   .content {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas:
-      "upload upload"
-      "ai ai"
+      "upload ai"
       "edit result";
-    align-items: start;
+    align-items: stretch;
   }
 
   .upload-panel {
     grid-area: upload;
+    height: 100%;
   }
 
   .ai-panel {
     grid-area: ai;
+    height: 100%;
   }
 
   .edit-panel {
@@ -942,6 +1092,89 @@ textarea {
   }
   100% {
     transform: scale(0.95);
+  }
+}
+
+@keyframes terminalHalo {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes terminalSheen {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@keyframes terminalDrift {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 80%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+@keyframes terminalScan {
+  0% {
+    background-position: 0% -120%;
+  }
+  100% {
+    background-position: 0% 120%;
+  }
+}
+
+@keyframes terminalNoise {
+  0% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.28;
+  }
+  100% {
+    opacity: 0.12;
+  }
+}
+
+@keyframes lineEnter {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes lineSweep {
+  0% {
+    transform: translateX(-120%);
+  }
+  100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes caretBlink {
+  0%,
+  49% {
+    opacity: 0.85;
+  }
+  50%,
+  100% {
+    opacity: 0;
   }
 }
 

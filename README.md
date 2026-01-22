@@ -1,5 +1,29 @@
 # used-instrument-valuation-poc
 
+## Tech stack
+
+### Backend
+- Python 3.11+
+- FastAPI
+- Uvicorn
+- LangChain
+- LangChain Community
+- LangChain OpenAI
+- ChromaDB
+- OpenAI API
+- Pydantic
+- Pydantic Settings
+- python-multipart
+- uv (package manager/venv)
+
+### Frontend
+- React 18
+- React DOM
+- TypeScript
+- Vite
+- @vitejs/plugin-react
+- Bun (dev server/package manager)
+
 ## Quick start
 
 ### Backend (FastAPI + uv)
