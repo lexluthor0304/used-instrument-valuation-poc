@@ -96,6 +96,47 @@ OPENAI_EMBED_MODEL=text-embedding-3-large
 # OPENAI_JSON_MODE=true           # enforce JSON output when possible
 ```
 
+### How to set these params (local vs Azure)
+
+#### Local dev (`./scripts/dev.sh`)
+Local runs read `backend/.env` via Pydantic Settings:
+```bash
+cd backend
+cp .env.example .env
+# edit .env
+```
+
+#### Azure App Service (production)
+Azure App Service does NOT read `backend/.env` (it’s a local file and is ignored by git). You must set env vars as **App Settings**:
+- Portal: App Service → Configuration → Application settings → “+ New application setting” → Save → Restart
+- CLI (example):
+
+```bash
+RG=used-instrument-valuation
+APP=used-instrument-valuation-poc
+
+az webapp config appsettings set -g $RG -n $APP --settings \
+  WEBSITES_PORT=8000 \
+  OPENAI_API_KEY=your_api_key \
+  OPENAI_VLM_MODEL=gpt-5-mini \
+  OPENAI_EMBED_MODEL=text-embedding-3-large \
+  OPENAI_RAG_MODEL=gpt-4.1 \
+  OPENAI_REASONING_EFFORT=medium \
+  OPENAI_REASONING_SUMMARY=detailed \
+  OPENAI_MAX_OUTPUT_TOKENS=2048 \
+  OPENAI_TEXT_VERBOSITY=medium \
+  OPENAI_JSON_MODE=true \
+  RAG_TOP_K=4 \
+  WEBSITES_ENABLE_APP_SERVICE_STORAGE=true \
+  RAG_PERSIST_DIR=/home/data/.rag_store
+
+az webapp restart -g $RG -n $APP
+```
+
+Notes:
+- Don’t copy inline comments like `# ...` into Azure setting values.
+- `OPENAI_TEMPERATURE` is ignored for GPT-5 series; set it only for models that support it.
+
 - `OPENAI_VLM_MODEL`: used for image -> description.
 - `OPENAI_RAG_MODEL`: used for price estimation synthesis.
 - `OPENAI_EMBED_MODEL`: used for vector embeddings.
