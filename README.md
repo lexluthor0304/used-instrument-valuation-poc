@@ -148,6 +148,40 @@ az webapp restart -g $RG -n $APP
 ./scripts/dev.sh
 ```
 
+## Docker 镜像打包（本地/发布前准备）
+
+### 1) 本地构建镜像
+```bash
+# 在 repo 根目录执行
+docker build -t usedinst:local .
+```
+
+### 2) 本地运行镜像
+```bash
+docker run --rm -p 8000:8000 \
+  -e OPENAI_API_KEY=your_api_key \
+  usedinst:local
+```
+验证：
+- `http://localhost:8000/`
+- `http://localhost:8000/api/health`
+
+### 3) Apple Silicon（M 系列）注意事项
+如果你用的是 Apple Silicon，本地 `docker build` 默认会构建 `arm64` 镜像；但 Azure App Service 常见是跑 `amd64`。
+
+推荐用 buildx 构建 `linux/amd64`：
+```bash
+# 构建 amd64 并加载到本地 Docker（用于本机验证/再 tag 推送）
+docker buildx build --platform linux/amd64 -t usedinst:amd64 --load .
+```
+
+### 4) 导出/导入镜像（可选）
+需要离线传输镜像时：
+```bash
+docker save -o usedinst.tar usedinst:local
+docker load -i usedinst.tar
+```
+
 ## 部署到 Azure App Service（单容器）
 这个 repo 可以用「单容器」方式部署到 Azure App Service（Linux / Web App for Containers）：
 - 前端：Vite build 后的静态资源
