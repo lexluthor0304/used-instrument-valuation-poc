@@ -29,6 +29,18 @@ Rules:
 """
 
 
+_UNKNOWN_QUERY_TOKENS = {"", "unknown", "n/a", "na", "none", "null", "不明", "不詳", "未記載"}
+
+
+def _is_unknown_query_value(value: str | None) -> bool:
+    if value is None:
+        return True
+    normalized = value.strip()
+    if not normalized:
+        return True
+    return normalized.casefold() in _UNKNOWN_QUERY_TOKENS
+
+
 class RagPipeline:
     def __init__(self, store: RagStore, client: OpenAI) -> None:
         self.store = store
@@ -78,11 +90,12 @@ class RagPipeline:
 
     @staticmethod
     def _build_query(description: InstrumentDescription) -> str:
+        year_text = "" if _is_unknown_query_value(description.year) else description.year or ""
         parts = [
             f"category: {description.category}",
-            f"brand: {description.brand}",
-            f"model: {description.model}",
-            f"year: {description.year or ''}",
+            f"brand: {'' if _is_unknown_query_value(description.brand) else description.brand}",
+            f"model: {'' if _is_unknown_query_value(description.model) else description.model}",
+            f"year: {year_text}",
             f"condition: {description.condition}",
             f"materials: {', '.join(description.materials)}",
             f"features: {', '.join(description.features)}",

@@ -8,6 +8,18 @@ from app.settings import get_settings
 from app.vlm.prompts import DESCRIPTION_PROMPT
 
 
+_UNKNOWN_TOKENS = {"", "unknown", "n/a", "na", "none", "null", "不明", "不詳", "未記載"}
+
+
+def _is_unknown_text(value: str | None) -> bool:
+    if value is None:
+        return True
+    normalized = value.strip()
+    if not normalized:
+        return True
+    return normalized.casefold() in _UNKNOWN_TOKENS
+
+
 def create_vlm_client() -> OpenAI:
     settings = get_settings()
     if not settings.openai_api_key:
@@ -44,7 +56,16 @@ def request_description(client: OpenAI, image_url: str) -> str:
 
 def parse_description(output_text: str) -> InstrumentDescription:
     data = extract_json_object(output_text)
-    return InstrumentDescription.model_validate(data)
+    description = InstrumentDescription.model_validate(data)
+
+    if _is_unknown_text(description.brand):
+        description.brand = "不明"
+    if _is_unknown_text(description.model):
+        description.model = "不明"
+    if _is_unknown_text(description.year):
+        description.year = "不明"
+
+    return description
 
 
 def describe_instrument(image_bytes: bytes, mime_type: str) -> InstrumentDescription:
