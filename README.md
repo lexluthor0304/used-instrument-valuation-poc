@@ -82,6 +82,17 @@ OPENAI_API_KEY=your_api_key
 OPENAI_VLM_MODEL=gpt-4o-mini
 OPENAI_RAG_MODEL=gpt-4.1-mini
 OPENAI_EMBED_MODEL=text-embedding-3-large
+
+# GPT-5 examples (pick what your account has access to):
+# OPENAI_VLM_MODEL=gpt-5
+# OPENAI_RAG_MODEL=gpt-5-mini
+
+# Optional tuning (useful for GPT-5 series / reasoning models)
+# OPENAI_REASONING_EFFORT=medium  # none|minimal|low|medium|high|xhigh
+# OPENAI_MAX_OUTPUT_TOKENS=2048
+# OPENAI_TEMPERATURE=0
+# OPENAI_TEXT_VERBOSITY=low       # low|medium|high
+# OPENAI_JSON_MODE=true           # enforce JSON output when possible
 ```
 
 - `OPENAI_VLM_MODEL`: used for image -> description.

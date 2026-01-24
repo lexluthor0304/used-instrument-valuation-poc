@@ -1,19 +1,11 @@
 import base64
-import json
-import re
 
 from openai import OpenAI
 
 from app.schemas import InstrumentDescription
+from app.openai_utils import build_responses_create_kwargs, extract_json_object
 from app.settings import get_settings
 from app.vlm.prompts import DESCRIPTION_PROMPT
-
-
-def _extract_json(text: str) -> dict:
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if not match:
-        raise ValueError("No JSON object found in VLM response")
-    return json.loads(match.group(0))
 
 
 def create_vlm_client() -> OpenAI:
@@ -41,12 +33,13 @@ def request_description(client: OpenAI, image_url: str) -> str:
                 ],
             }
         ],
+        **build_responses_create_kwargs(force_json=True),
     )
     return response.output_text
 
 
 def parse_description(output_text: str) -> InstrumentDescription:
-    data = _extract_json(output_text)
+    data = extract_json_object(output_text)
     return InstrumentDescription.model_validate(data)
 
 

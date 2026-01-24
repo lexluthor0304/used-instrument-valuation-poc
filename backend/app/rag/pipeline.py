@@ -1,11 +1,10 @@
-import json
-import re
 from functools import lru_cache
 from pathlib import Path
 
 from openai import OpenAI
 from langchain_openai import OpenAIEmbeddings
 
+from app.openai_utils import build_responses_create_kwargs, extract_json_object
 from app.rag.seed import load_seed_documents
 from app.rag.store import RagResult, RagStore
 from app.schemas import InstrumentDescription, ValuationResult
@@ -28,14 +27,6 @@ Rules:
 - rationale and evidence must be in Japanese.
 - If references are thin, lower confidence and say so.
 """
-
-
-def _extract_json(text: str) -> dict:
-    match = re.search(r"\{.*\}", text, re.DOTALL)
-    if not match:
-        raise ValueError("No JSON object found in RAG response")
-    return json.loads(match.group(0))
-
 
 class RagPipeline:
     def __init__(self, store: RagStore, client: OpenAI) -> None:
@@ -72,12 +63,13 @@ class RagPipeline:
                     ],
                 }
             ],
+            **build_responses_create_kwargs(force_json=True),
         )
         return response.output_text
 
     @staticmethod
     def parse_estimate(output_text: str) -> ValuationResult:
-        data = _extract_json(output_text)
+        data = extract_json_object(output_text)
         return ValuationResult.model_validate(data)
 
     @staticmethod
