@@ -29,7 +29,7 @@ def request_description(client: OpenAI, image_url: str) -> str:
                 "role": "user",
                 "content": [
                     {"type": "input_text", "text": DESCRIPTION_PROMPT},
-                    {"type": "input_image", "image_url": image_url},
+                    {"type": "input_image", "image_url": image_url, "detail": "auto"},
                 ],
             }
         ],

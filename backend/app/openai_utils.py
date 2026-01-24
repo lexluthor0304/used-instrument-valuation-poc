@@ -7,6 +7,10 @@ _ALLOWED_REASONING_EFFORT = {"none", "minimal", "low", "medium", "high", "xhigh"
 _ALLOWED_TEXT_VERBOSITY = {"low", "medium", "high"}
 
 
+def _strip_inline_comment(text: str) -> str:
+    return text.split("#", 1)[0].strip()
+
+
 def _find_json_object_span(text: str) -> tuple[int, int] | None:
     start = text.find("{")
     if start < 0:
@@ -75,7 +79,7 @@ def build_responses_create_kwargs(*, force_json: bool = True) -> dict[str, Any]:
         kwargs["temperature"] = settings.openai_temperature
 
     if settings.openai_reasoning_effort:
-        effort = settings.openai_reasoning_effort.strip().casefold()
+        effort = _strip_inline_comment(settings.openai_reasoning_effort).casefold()
         if effort not in _ALLOWED_REASONING_EFFORT:
             raise ValueError(
                 "OPENAI_REASONING_EFFORT must be one of "
@@ -85,7 +89,7 @@ def build_responses_create_kwargs(*, force_json: bool = True) -> dict[str, Any]:
 
     text_config: dict[str, Any] = {}
     if settings.openai_text_verbosity:
-        verbosity = settings.openai_text_verbosity.strip().casefold()
+        verbosity = _strip_inline_comment(settings.openai_text_verbosity).casefold()
         if verbosity not in _ALLOWED_TEXT_VERBOSITY:
             raise ValueError(
                 "OPENAI_TEXT_VERBOSITY must be one of "

@@ -1,5 +1,6 @@
 import json
 import os
+import logging
 from pathlib import Path
 from pathlib import PurePosixPath
 from typing import AsyncIterator
@@ -20,6 +21,7 @@ from app.vlm.client import (
 )
 
 app = FastAPI(title="Used Instrument Valuation API", version="0.1.0")
+logger = logging.getLogger(__name__)
 
 app.add_middleware(
     CORSMiddleware,
@@ -70,8 +72,10 @@ async def describe(image: UploadFile = File(...)) -> InstrumentDescription:
         payload = await image.read()
         return describe_instrument(payload, image.content_type)
     except ValueError as exc:
+        logger.warning("VLM request error: %s", exc)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
+        logger.exception("VLM request failed")
         raise HTTPException(status_code=500, detail="VLM request failed") from exc
 
 
@@ -111,8 +115,10 @@ async def describe_stream(image: UploadFile = File(...)) -> StreamingResponse:
                 "result", {"phase": "vision", "payload": description.model_dump()}
             )
         except ValueError as exc:
+            logger.warning("VLM request error: %s", exc)
             yield _sse_event("error", {"message": str(exc)})
         except Exception:
+            logger.exception("VLM request failed")
             yield _sse_event("error", {"message": "VLM request failed"})
 
     return StreamingResponse(
@@ -130,8 +136,10 @@ async def estimate(
     try:
         return pipeline.estimate(description)
     except ValueError as exc:
+        logger.warning("RAG request error: %s", exc)
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except Exception as exc:
+        logger.exception("RAG request failed")
         raise HTTPException(status_code=500, detail="RAG request failed") from exc
 
 
@@ -167,8 +175,10 @@ async def estimate_stream(
                 "result", {"phase": "rag", "payload": result.model_dump()}
             )
         except ValueError as exc:
+            logger.warning("RAG request error: %s", exc)
             yield _sse_event("error", {"message": str(exc)})
         except Exception:
+            logger.exception("RAG request failed")
             yield _sse_event("error", {"message": "RAG request failed"})
 
     return StreamingResponse(
